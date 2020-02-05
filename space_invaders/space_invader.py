@@ -10,6 +10,11 @@ pg.display.set_caption("Jiri's fun stuff")
 def get_distance(p1, p2):
 	return ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
 
+class Game():
+	def __init__(self):
+		self.on = True
+		self.over = False
+
 class Player():
 	def __init__(self, win_width, win_height):
 		self.img = pg.image.load('spaceship2.png')
@@ -120,7 +125,7 @@ class Projectile():
 		if self.y < -12:
 			self.active = False
 	
-
+game = Game()
 monster = Enemy()
 proj = Projectile()
 player = Player(win_width, win_height)
@@ -128,12 +133,10 @@ player = Player(win_width, win_height)
 #scoreboard
 font = pg.font.Font('font1.ttf', 32)
 
-
-play = True
-while play:
+while game.on:
 	for event in pg.event.get():
 		if event.type == pg.QUIT:
-			play = False
+			game.on = False
 		if event.type == pg.KEYDOWN:
 			if event.key == pg.K_LEFT:
 				player.x_spd = -player.speed
@@ -166,7 +169,12 @@ while play:
 	player.move()
 
 	#Score
-	text = font.render(f"Score: {player.score}", True, (255, 0, 0))
+	if get_distance((monster.x + 32, monster.y + 32), (player.x + 32, player.y + 32)) < 60:
+		game.over = True
+	if game.over:
+		text = font.render("GAME OVER", True, (255, 0, 0))
+	else:
+		text = font.render(f"Score: {player.score}", True, (255, 255, 0))
 	textrec = text.get_rect()
 	textrec.center = (int(win_width / 2), int(win_height - 32))
 	root.blit(text, textrec)
