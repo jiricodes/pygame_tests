@@ -3,10 +3,10 @@ import sys
 from random import shuffle
 
 class PuzzleBoard():
-	def __init__(self, n):
-		self.out_margin = 25
-		self.tile_size = 100
-		self.border_size = 10
+	def __init__(self, n, t_size):
+		self.out_margin = 0
+		self.tile_size = t_size
+		self.border_size = int(self.tile_size / 10)
 		self.n = n
 		self.size = self.n * self.tile_size + (self.n + 1) * self. border_size
 		self.bg_draw_position = [self.out_margin, self.out_margin, self.size, self.size]
@@ -18,7 +18,11 @@ class PuzzleBoard():
 		print(self.tiles)
 		self.bg_color = (255, 255, 255)
 		self.tile_color = (185, 185, 185)
-		self.tile_font = pg.font.Font('resources/font1.ttf', 32)
+		if self.n ** 2 > 999:
+			fontsize = int(self.tile_size / 3)
+		else:
+			fontsize = int(self.tile_size / 2)
+		self.tile_font = pg.font.Font('resources/font1.ttf', fontsize)
 		self.tile_text_color = (0, 0, 0)
 	
 	def shuffle_tiles(self):
@@ -94,13 +98,17 @@ if __name__ == "__main__":
 		n = int(sys.argv[1])
 	else:
 		n = 3
+	if n < 10:
+		t_size = 100
+	else:
+		t_size = int(1000 / (n + int((n + 1) / 10)))
 	pg.init()
-	win_width = 800
-	win_height = 600
+	win_width = n * t_size + (n + 1) * int(t_size / 10)
+	win_height = n * t_size + (n + 1) * int(t_size / 10)
 	root = pg.display.set_mode((win_width, win_height))
-	pg.display.set_caption("N-Puzzle")
+	pg.display.set_caption("N-Puzzle by jiricodes")
 	gameon = True
-	puzzle = PuzzleBoard(n)
+	puzzle = PuzzleBoard(n, t_size)
 	while gameon:
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
