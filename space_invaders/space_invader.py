@@ -149,9 +149,9 @@ while game.on:
 			if event.key == pg.K_SPACE:
 				proj.shoot(player.x, player.y)
 		if event.type == pg.KEYUP:
-			if event.key == pg.K_LEFT or event.key == pg.K_RIGHT:
+			if (event.key == pg.K_LEFT and player.x_spd < 0) or (event.key == pg.K_RIGHT and player.x_spd > 0):
 				player.x_spd = 0
-			if event.key == pg.K_UP or  event.key == pg.K_DOWN:
+			if (event.key == pg.K_UP and player.y_spd < 0) or  (event.key == pg.K_DOWN and player.y_spd > 0):
 				player.y_spd = 0
 			if event.key == pg.K_ESCAPE:
 				pg.quit()
