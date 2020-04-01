@@ -1,6 +1,8 @@
 # N-Puzzle
 Classic sliding puzzle with modular size.
 
+![](resources/preview.gif)
+
 ## Requirements
 ```
 python3
