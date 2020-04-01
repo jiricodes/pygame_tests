@@ -97,7 +97,7 @@ if __name__ == "__main__":
 	if len(sys.argv) == 2:
 		n = int(sys.argv[1])
 	else:
-		n = 3
+		n = 5
 	if n < 10:
 		t_size = 100
 	else:
