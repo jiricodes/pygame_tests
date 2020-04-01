@@ -10,4 +10,4 @@ pygame
 Very first attempt to create anything in pygame
 
 ### N-Puzzle
-Classic sliding puzzle with modular size. This game was created in preparation for project under Hive Helsinki curriculum which aims on solving such puzzles with A* algorithm.
+Classic sliding puzzle with modular size. This game was created in preparation for project under [Hive Helsinki](https://www.hive.fi/en/) curriculum which aims on solving such puzzles with A* algorithm.
