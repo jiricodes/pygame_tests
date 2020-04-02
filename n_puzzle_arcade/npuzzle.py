@@ -36,8 +36,9 @@ class PuzzleBoard(ar.Window):
 		self.tiles_list = list()
 		self.tiles_textures = None
 		ar.set_background_color(ar.color.BLACK)
-		self.tile_speed = 5
+		self.tile_speed = 10
 		self.tile_moving = None
+		self.tile_travel_distance = self.tile_size + self.border_size
 	
 	def shuffle_tiles(self):
 		pool = list(range(self.n * self.n))
@@ -96,30 +97,20 @@ class PuzzleBoard(ar.Window):
 	
 	def on_update(self, delta_time):
 		if self.tile_moving:
-			print("Tile's moving!")
-			i = 0
-			while i < self.n:
-				k = 0
-				while k < self.n:
-					if self.tiles_list[i][k] and not (self.tile_moving['row'] == i and self.tile_moving['column'] == k):
-						delta_x = abs(self.tiles_list[i][k].center_x - self.tile_moving['sprite'].center_x)
-						delta_y = abs(self.tiles_list[i][k].center_y - self.tile_moving['sprite'].center_y)
-						spacer = 200 * self.tile_ratio + self.border_size
-						print(f"{delta_x} | {delta_y} | {spacer}")
-						if delta_x < spacer and delta_y < spacer:
-							self.tile_moving['sprite'].change_x = 0
-							self.tile_moving['sprite'].change_y = 0
-							self.tile_moving['sprite']
-							self.tile_moving = None
-							break
-					k += 1
-				if self.tile_moving == None:
-					break
-				i += 1
-		# else:
-		# 	print("Tile's not moving!")
+			delta_x = abs(self.tile_moving['sprite'].center_x - self.tile_moving['dest_x'])
+			delta_y = abs(self.tile_moving['sprite'].center_y - self.tile_moving['dest_y'])
+			error_margin = self.border_size / 2
+			if delta_x < error_margin and delta_y < error_margin:
+				self.tile_moving['sprite'].change_x = 0
+				self.tile_moving['sprite'].change_y = 0
+				self.tile_moving['sprite'].center_x = self.tile_moving['dest_x']
+				self.tile_moving['sprite'].center_y = self.tile_moving['dest_y']
+				self.tile_moving = None
+		else:
+			if self.check_end():
+				exit()
 		self.tiles_sprites.update()
-	
+
 	def on_key_release(self, symbol, modifiers):
 		if symbol == ar.key.RIGHT:
 			self.move_right()
@@ -150,7 +141,7 @@ class PuzzleBoard(ar.Window):
 			self.tiles_list[i][k] = self.tiles_list[i][k + 1]
 			self.tiles_list[i][k + 1] = None
 			self.tiles_list[i][k].change_x = -1 * self.tile_speed
-			self.tile_moving = { 'row': i, 'column': k, 'sprite': self.tiles_list[i][k]}
+			self.tile_moving = { 'dest_y': self.tiles_list[i][k].center_y, 'dest_x': self.tiles_list[i][k].center_x  - self.tile_travel_distance, 'sprite': self.tiles_list[i][k]}
 
 	def move_right(self):
 		i, k = self.find_number(0)
@@ -160,7 +151,7 @@ class PuzzleBoard(ar.Window):
 			self.tiles_list[i][k] = self.tiles_list[i][k - 1]
 			self.tiles_list[i][k - 1] = None
 			self.tiles_list[i][k].change_x = self.tile_speed
-			self.tile_moving = { 'row': i, 'column': k, 'sprite': self.tiles_list[i][k]}
+			self.tile_moving = { 'dest_y': self.tiles_list[i][k].center_y, 'dest_x': self.tiles_list[i][k].center_x  + self.tile_travel_distance, 'sprite': self.tiles_list[i][k]}
 
 	def move_up(self):
 		i, k = self.find_number(0)
@@ -170,7 +161,7 @@ class PuzzleBoard(ar.Window):
 			self.tiles_list[i][k] = self.tiles_list[i + 1][k]
 			self.tiles_list[i + 1][k] = 0
 			self.tiles_list[i][k].change_y = self.tile_speed
-			self.tile_moving = { 'row': i, 'column': k, 'sprite': self.tiles_list[i][k]}
+			self.tile_moving = { 'dest_y': self.tiles_list[i][k].center_y + self.tile_travel_distance, 'dest_x': self.tiles_list[i][k].center_x, 'sprite': self.tiles_list[i][k]}
 	
 	def move_down(self):
 		i, k = self.find_number(0)
@@ -180,8 +171,20 @@ class PuzzleBoard(ar.Window):
 			self.tiles_list[i][k] = self.tiles_list[i - 1][k]
 			self.tiles_list[i - 1][k] = 0
 			self.tiles_list[i][k].change_y = -1 * self.tile_speed
-			self.tile_moving = { 'row': i, 'column': k, 'sprite': self.tiles_list[i][k]}
+			self.tile_moving = { 'dest_y': self.tiles_list[i][k].center_y - self.tile_travel_distance, 'dest_x': self.tiles_list[i][k].center_x, 'sprite': self.tiles_list[i][k]}
 
+	def check_end(self):
+		i = 0
+		while i < self.n:
+			k = 0
+			while k < self.n:
+				if k == self.n - 1 and i == self.n - 1 and self.tiles[i][k] == 0:
+					return True
+				if self.tiles[i][k] != i * self.n + k + 1:
+					return False
+				k += 1
+			i += 1
+		return False
 
 
 def run_game(n, t_size, win_width, win_height):
