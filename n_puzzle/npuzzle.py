@@ -91,11 +91,66 @@ class PuzzleBoard():
 		if i > 0:
 			self.tiles[i][k] = self.tiles[i - 1][k]
 			self.tiles[i - 1][k] = 0
+	
+	def assign_map(self, map):
+		self.tiles = map
+		print(self.tiles)
+
+	def move_zeronext(self, nb):
+		'''Moves the empty space next to given number in fastest possible manner'''
+		def move_x(d_x):
+			if d_x < 0: #needs to move right
+				while d_x != 0:
+					self.move_right()
+					d_x += 1
+			else: #needs to move left
+				while d_x != 0:
+					self.move_left()
+					d_x -= 1
+		z_y, z_x = self.find_number(0)
+		n_y, n_x = self.find_number(nb)
+		d_y = n_y - z_y
+		d_x = n_x - z_x
+		print(f"{d_y} and {d_x}")
+		if (abs(d_y), abs(d_x)) == (0, 1) or (abs(d_y), abs(d_x)) == (1, 0):
+			print('No moves needed')
+		elif d_y < 0: #needs to move down
+			while d_y != -1:
+				self.move_down()
+				d_y += 1
+			move_x(d_x)
+		elif d_y > 0: #needs to move up
+			while d_y != 1:
+				self.move_up()
+				d_y -= 1
+			move_x(d_x)
+		else:
+			if d_x > 0:
+				move_x(d_x - 1)
+			else:
+				move_x(d_x + 1)
 		
 
 if __name__ == "__main__":
+	map = None
 	if len(sys.argv) == 2:
 		n = int(sys.argv[1])
+	elif len(sys.argv) == 3 and sys.argv[1] == "-f":
+		# Reading from a file, assumes the file is in correct format
+		try:
+			f = open(sys.argv[2], 'r')
+		except:
+			print('Error reading form the given file')
+			exit()
+		else:
+			nb_rows = f.readlines()
+			map = list()
+			for line in nb_rows:
+				new = list()
+				for n in line.rstrip().split():
+					new.append(int(n))
+				map.append(new)
+			n = len(map)
 	else:
 		n = 5
 	if n < 10:
@@ -109,6 +164,8 @@ if __name__ == "__main__":
 	pg.display.set_caption("N-Puzzle by jiricodes")
 	gameon = True
 	puzzle = PuzzleBoard(n, t_size)
+	if map:
+		puzzle.assign_map(map)
 	while gameon:
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
@@ -116,12 +173,22 @@ if __name__ == "__main__":
 			if event.type == pg.KEYUP:
 				if event.key == pg.K_LEFT:
 					puzzle.move_left()
-				if event.key == pg.K_RIGHT:
+				elif event.key == pg.K_RIGHT:
 					puzzle.move_right()
-				if event.key == pg.K_UP:
+				elif event.key == pg.K_UP:
 					puzzle.move_up()
-				if event.key == pg.K_DOWN:
+				elif event.key == pg.K_DOWN:
 					puzzle.move_down()
+				elif event.key == pg.K_1:
+					puzzle.move_zeronext(1)
+				elif event.key == pg.K_2:
+					puzzle.move_zeronext(2)
+				elif event.key == pg.K_3:
+					puzzle.move_zeronext(3)
+				elif event.key == pg.K_4:
+					puzzle.move_zeronext(4)
+				elif event.key == pg.K_5:
+					puzzle.move_zeronext(5)
 		root.fill((0, 0, 0))
 		puzzle.plot(root) 
 		pg.display.update()
