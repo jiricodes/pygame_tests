@@ -2,6 +2,7 @@ import arcade as ar
 import sys
 import os
 from random import shuffle
+from random import randint
 from PIL import ImageFont
 from PIL import Image
 from PIL import ImageDraw
@@ -22,7 +23,7 @@ class PuzzleBoard(ar.Window):
 		for i in range(self.n):
 			row = [0] * self.n
 			self.tiles.append(row)
-		self.shuffle_tiles()
+		self.create_tiles_values()
 		print(self.tiles)
 		self.bg_color = (255, 255, 255)
 		self.tile_color = (185, 185, 185)
@@ -36,13 +37,20 @@ class PuzzleBoard(ar.Window):
 		self.tiles_list = list()
 		self.tiles_textures = None
 		ar.set_background_color(ar.color.BLACK)
-		self.tile_speed = 10
+		self.tile_speed_orig = 15
+		self.tile_speed = self.tile_speed_orig
 		self.tile_moving = None
 		self.tile_travel_distance = self.tile_size + self.border_size
+		self.shuffle_iterations = 0
+		self.last_move = None
+		self.gameon = True
+		self.win_img = None
+		self.restart_img = None
 	
-	def shuffle_tiles(self):
+	def create_tiles_values(self):
 		pool = list(range(self.n * self.n))
-		shuffle(pool)
+		zero = pool.pop(0)
+		pool.append(zero)
 		i = 0
 		while i < self.n:
 			k = 0
@@ -50,6 +58,41 @@ class PuzzleBoard(ar.Window):
 				self.tiles[i][k] = pool.pop(0)
 				k += 1
 			i += 1
+
+	def shuffle_tiles(self):
+		self.gameon = True
+		self.shuffle_iterations = self.n ** 2 * 25
+		self.tile_speed = self.shuffle_iterations ** 3
+		self.random_move()
+
+	def random_move(self):
+		def is_oposite(a, b):
+			if (a, b) == (0, 1) or (a, b) == (1, 0) or (a, b) == (2, 3) or (a, b) == (3, 2):
+				return True
+			else:
+				return False
+		generate = True
+		while generate:
+			m = randint(0, 3)
+			if not is_oposite(m, self.last_move):
+				generate = False
+		if m == 0:
+			if not self.move_right():
+				self.random_move()
+				return
+		elif m == 1:
+			if not self.move_left():
+				self.random_move()
+				return
+		elif m == 2:
+			if not self.move_up():
+				self.random_move()
+				return
+		else:
+			if not self.move_down():
+				self.random_move()
+				return
+		self.last_move = m
 
 	def setup(self):
 		self.tiles_sprites = ar.SpriteList()
@@ -88,18 +131,31 @@ class PuzzleBoard(ar.Window):
 			x = self.out_margin + self.border_size + int(200 * self.tile_ratio / 2)
 			y -= int(200 * self.tile_ratio) + self.border_size
 			i += 1
+		self.win_img = ar.Sprite('resources/victory.png', self.size/1000)
+		self.win_img.center_x = self.size / 2
+		self.win_img.center_y = self.size / 4 * 3
+		self.restart_img = ar. Sprite('resources/restart.png', self.size/1000)
+		self.restart_img.center_x = self.size / 2
+		self.restart_img.center_y = self.size / 4
 		self.time_elapsed = 0
-		print(self.tiles_list)
+		self.shuffle_tiles()
+
+	def draw_end_game(self):
+		self.win_img.draw()
+		self.restart_img.draw()
 
 	def on_draw(self):
 		ar.start_render()
-		self.tiles_sprites.draw()
+		if self.gameon:
+			self.tiles_sprites.draw()
+		else:
+			self.draw_end_game()
 	
 	def on_update(self, delta_time):
 		if self.tile_moving:
 			delta_x = abs(self.tile_moving['sprite'].center_x - self.tile_moving['dest_x'])
 			delta_y = abs(self.tile_moving['sprite'].center_y - self.tile_moving['dest_y'])
-			error_margin = self.border_size / 2
+			error_margin = self.border_size / 2 + self.tile_speed
 			if delta_x < error_margin and delta_y < error_margin:
 				self.tile_moving['sprite'].change_x = 0
 				self.tile_moving['sprite'].change_y = 0
@@ -107,8 +163,13 @@ class PuzzleBoard(ar.Window):
 				self.tile_moving['sprite'].center_y = self.tile_moving['dest_y']
 				self.tile_moving = None
 		else:
-			if self.check_end():
-				exit()
+			if self.shuffle_iterations:
+				self.random_move()
+				self.shuffle_iterations -= 1
+			else:
+				self.tile_speed = self.tile_speed_orig
+				if self.check_end():
+					self.gameon = False
 		self.tiles_sprites.update()
 
 	def on_key_release(self, symbol, modifiers):
@@ -120,6 +181,17 @@ class PuzzleBoard(ar.Window):
 			self.move_up()
 		if symbol == ar.key.DOWN:
 			self.move_down()
+		if symbol == ar.key.R:
+			self.shuffle_tiles()
+		if symbol == ar.key.NUM_ADD or symbol == ar.key.E:
+			self.tile_speed_orig += 5
+			print(f"PLUS | Original {self.tile_speed_orig} | Current {self.tile_speed}")
+		if (symbol == ar.key.NUM_SUBTRACT or symbol == ar.key.Q) and self.tile_speed > 5:
+			self.tile_speed_orig -= 5
+			print(f"MINUS | Original {self.tile_speed_orig} | Current {self.tile_speed}")
+		if symbol == ar.key.EQUAL or symbol == ar.key.W:
+			self.tile_speed_orig = 15
+			print(f"EQUAL | Original {self.tile_speed_orig} | Current {self.tile_speed}")
 
 	def find_number(self, nb):
 		i = 0
@@ -142,6 +214,8 @@ class PuzzleBoard(ar.Window):
 			self.tiles_list[i][k + 1] = None
 			self.tiles_list[i][k].change_x = -1 * self.tile_speed
 			self.tile_moving = { 'dest_y': self.tiles_list[i][k].center_y, 'dest_x': self.tiles_list[i][k].center_x  - self.tile_travel_distance, 'sprite': self.tiles_list[i][k]}
+			return True
+		return False
 
 	def move_right(self):
 		i, k = self.find_number(0)
@@ -152,6 +226,8 @@ class PuzzleBoard(ar.Window):
 			self.tiles_list[i][k - 1] = None
 			self.tiles_list[i][k].change_x = self.tile_speed
 			self.tile_moving = { 'dest_y': self.tiles_list[i][k].center_y, 'dest_x': self.tiles_list[i][k].center_x  + self.tile_travel_distance, 'sprite': self.tiles_list[i][k]}
+			return True
+		return False
 
 	def move_up(self):
 		i, k = self.find_number(0)
@@ -162,6 +238,8 @@ class PuzzleBoard(ar.Window):
 			self.tiles_list[i + 1][k] = 0
 			self.tiles_list[i][k].change_y = self.tile_speed
 			self.tile_moving = { 'dest_y': self.tiles_list[i][k].center_y + self.tile_travel_distance, 'dest_x': self.tiles_list[i][k].center_x, 'sprite': self.tiles_list[i][k]}
+			return True
+		return False
 	
 	def move_down(self):
 		i, k = self.find_number(0)
@@ -172,6 +250,8 @@ class PuzzleBoard(ar.Window):
 			self.tiles_list[i - 1][k] = 0
 			self.tiles_list[i][k].change_y = -1 * self.tile_speed
 			self.tile_moving = { 'dest_y': self.tiles_list[i][k].center_y - self.tile_travel_distance, 'dest_x': self.tiles_list[i][k].center_x, 'sprite': self.tiles_list[i][k]}
+			return True
+		return False
 
 	def check_end(self):
 		i = 0
