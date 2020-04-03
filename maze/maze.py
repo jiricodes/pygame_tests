@@ -1,13 +1,15 @@
 import arcade as ar
 import os
-from sources.grid import create_maze_depthfirst
+from sources.grid import create_maze_depthfirst, find_end_xy, find_start_xy
+from sources.bfs import bfs_path
 
 # Settings
-SPRITE_SCALE = 0.25
-SPRITE_SIZE = int(128 * SPRITE_SCALE)
+SPRITE_SIZE = 8
+SPRITE_SCALE = SPRITE_SIZE / 128
 
-MAZE_W = 21
-MAZE_H = 21
+
+MAZE_W = 81
+MAZE_H = 81
 WIN_W = int(MAZE_W * SPRITE_SIZE)
 WIN_H = int(MAZE_H * SPRITE_SIZE)
 
@@ -21,6 +23,8 @@ class MazeGame(ar.Window):
 		self.maze = None
 		self.wall_list = None
 		self.start_end = None
+		self.path = None
+		self.path_draw = True
 	
 	def setup(self):
 		ar.set_background_color(ar.color.BRITISH_RACING_GREEN)
@@ -44,13 +48,38 @@ class MazeGame(ar.Window):
 					end.center_x = column * SPRITE_SIZE + SPRITE_SIZE / 2
 					end.center_y = row * SPRITE_SIZE + SPRITE_SIZE / 2
 					self.start_end.append(end)
+		suc, path = bfs_path(self.maze, find_start_xy(self.maze, self.maze_w, self.maze_h), find_end_xy(self.maze, self.maze_w, self.maze_h))
+		if suc:
+			self.add_path(path)
+
 	def on_draw(self):
 		ar.start_render()
 		self.wall_list.draw()
 		self.start_end.draw()
+		if self.path_draw:
+			self.draw_path()
 	
 	def on_update(self, delta_time):
 		pass
+	
+	def on_key_release(self, symbol, modifier):
+		if symbol == ar.key.KEY_1:
+			self.path_draw = False
+		elif symbol == ar.key.KEY_2:
+			self.path_draw = True
+				
+
+	def add_path(self, path=[[1,1], [2,1], [2,2]]):
+		self.path = path
+		print(self.path)
+
+	def draw_path(self):
+		if self.path:
+			points = list()
+			for p in self.path:
+				n = (p[0] * SPRITE_SIZE + SPRITE_SIZE / 2, p[1] * SPRITE_SIZE + SPRITE_SIZE / 2)
+				points.append(n)
+			ar.draw_line_strip(points, ar.color.BLUE_BELL, 5)
 
 def main():
 	window = MazeGame(WIN_W, WIN_H, MAZE_W, MAZE_H)

@@ -58,12 +58,36 @@ def create_maze_depthfirst(width, height):
 		i -= 1
 	return maze
 
+def find_start_xy(grid, w, h):
+	i = 1
+	while i < h:
+		k = 1
+		while k < w:
+			if grid[i][k] == 2:
+				return [k, i]
+			k += 1
+		i += 1
+	return None
+
+def find_end_xy(grid, w, h):
+	i = h - 1
+	while i > -1:
+		k = w - 1
+		while k > -1:
+			if grid[i][k] == 3:
+				return [k, i]
+			k -= 1
+		i -= 1
+	return None
+
 def print_grid(grid):
 	for row in grid:
 		for n in row:
-			print(n, end=" ")
+			print(f"{n:2}", end=" ")
 		print()
 
 if __name__ == "__main__":
-	g = create_maze_depthfirst(11,11)
+	h = 11
+	w = 11
+	g = create_maze_depthfirst(w,h)
 	print_grid(g)
