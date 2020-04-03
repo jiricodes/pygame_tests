@@ -10,8 +10,8 @@ from PIL import ImageDraw
 class PuzzleBoard(ar.Window):
 	def __init__(self, n, t_size, win_width, win_height):
 		super().__init__(win_width, win_height, "N-Puzzle by jiricodes")
-		# file_path = os.path.dirname(os.path.abspath(__file__))
-		# os.chdir(file_path)
+		file_path = os.path.dirname(os.path.abspath(__file__))
+		os.chdir(file_path)
 		self.out_margin = 0
 		self.tile_size = t_size
 		self.tile_ratio = t_size / 200
@@ -24,7 +24,6 @@ class PuzzleBoard(ar.Window):
 			row = [0] * self.n
 			self.tiles.append(row)
 		self.create_tiles_values()
-		print(self.tiles)
 		self.bg_color = (255, 255, 255)
 		self.tile_color = (185, 185, 185)
 		if self.n ** 2 > 999:
@@ -166,6 +165,8 @@ class PuzzleBoard(ar.Window):
 			if self.shuffle_iterations:
 				self.random_move()
 				self.shuffle_iterations -= 1
+				if self.shuffle_iterations == 0:
+					print(self.tiles)
 			else:
 				self.tile_speed = self.tile_speed_orig
 				if self.check_end():
@@ -185,13 +186,10 @@ class PuzzleBoard(ar.Window):
 			self.shuffle_tiles()
 		if symbol == ar.key.NUM_ADD or symbol == ar.key.E:
 			self.tile_speed_orig += 5
-			print(f"PLUS | Original {self.tile_speed_orig} | Current {self.tile_speed}")
 		if (symbol == ar.key.NUM_SUBTRACT or symbol == ar.key.Q) and self.tile_speed > 5:
 			self.tile_speed_orig -= 5
-			print(f"MINUS | Original {self.tile_speed_orig} | Current {self.tile_speed}")
 		if symbol == ar.key.EQUAL or symbol == ar.key.W:
 			self.tile_speed_orig = 15
-			print(f"EQUAL | Original {self.tile_speed_orig} | Current {self.tile_speed}")
 
 	def find_number(self, nb):
 		i = 0
