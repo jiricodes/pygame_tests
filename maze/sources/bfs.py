@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 def grid_index_to_coords(grid_width, grid_height, index):
 	x = index % grid_width
 	y = index // grid_height
@@ -22,7 +24,10 @@ def get_neighbors(grid, grid_width, grid_height, pos):
 	return ngbs
 
 def bfs_path(grid, start, end):
-	tmp = grid.copy()
+	if not grid or not start or not end:
+		return False, None
+	cnt = 0
+	tmp = deepcopy(grid)
 	w = len(tmp[0])
 	h = len(tmp)
 	queue = list()
@@ -31,10 +36,13 @@ def bfs_path(grid, start, end):
 		path = queue.pop(0)
 		current = path[-1]
 		if current == end:
+			print(f"BFS Explored Vertices: {cnt}")
 			return True, path
 		for n in get_neighbors(tmp, w, h, current):
 			new = list(path)
 			new.append(n)
 			queue.append(new)
 		tmp[current[1]][current[0]] = -1
+		cnt += 1
+	print(f"BFS Explored Vertices: {cnt}")
 	return False, tmp

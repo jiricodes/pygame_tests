@@ -1,6 +1,6 @@
 import arcade as ar
 import os
-from sources.grid import create_maze_depthfirst, find_end_xy, find_start_xy
+from sources.grid import create_maze_depthfirst_multipath, find_end_xy, find_start_xy
 from sources.bfs import bfs_path
 
 # Settings
@@ -8,10 +8,12 @@ SPRITE_SIZE = 8
 SPRITE_SCALE = SPRITE_SIZE / 128
 
 
-MAZE_W = 81
-MAZE_H = 81
+MAZE_W = 99
+MAZE_H = 99
 WIN_W = int(MAZE_W * SPRITE_SIZE)
 WIN_H = int(MAZE_H * SPRITE_SIZE)
+
+MAZE_PATHS = 3
 
 class MazeGame(ar.Window):
 	def __init__(self, win_w, win_h, maze_w, maze_h):
@@ -28,7 +30,7 @@ class MazeGame(ar.Window):
 	
 	def setup(self):
 		ar.set_background_color(ar.color.BRITISH_RACING_GREEN)
-		self.maze = create_maze_depthfirst(self.maze_w, self.maze_h)
+		self.maze = create_maze_depthfirst_multipath(self.maze_w, self.maze_h, MAZE_PATHS)
 		self.wall_list = ar.SpriteList()
 		self.start_end = ar.SpriteList()
 		for row in range(self.maze_h):
@@ -67,11 +69,15 @@ class MazeGame(ar.Window):
 			self.path_draw = False
 		elif symbol == ar.key.KEY_2:
 			self.path_draw = True
-				
+	
+	def on_mouse_release(self, x, y, button, modifier):
+		pos_x = int(x / SPRITE_SIZE)
+		pos_y = int(y / SPRITE_SIZE)
+		if button == ar.MOUSE_BUTTON_LEFT:
+			print(f"Current position [{pos_x}, {pos_y}]")
 
 	def add_path(self, path=[[1,1], [2,1], [2,2]]):
 		self.path = path
-		print(self.path)
 
 	def draw_path(self):
 		if self.path:
