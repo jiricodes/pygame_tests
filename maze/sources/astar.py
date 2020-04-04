@@ -1,6 +1,102 @@
 from copy import deepcopy
+from collections import defaultdict
 
-def manhattan_heuristic(grid, start, end):
-	h = deepcopy(grid)
+def i_to_xy(grid_width, grid_height, index):
+	x = index % grid_width
+	y = index // grid_height
+	return [x, y]
+
+def xy_to_i(grid_height, coords):
+	i = grid_height * coords[1] + coords[0]
+	return i
+
+def manhattan_heuristic(grid, end):
+	manhattan = deepcopy(grid)
+	w = len(manhattan[0])
+	h = len(manhattan)
+	x = end[0]
+	y = end[1]
+	manhattan[y][x] = 0
+	i = 0
+	while i < h:
+		k = 0
+		while k < w:
+			manhattan[i][k] = abs(x - k) + abs(y - i)
+			k += 1
+		i += 1
+	return manhattan
+
 def astar_path(grid, start, end):
-	pass
+	def get_neighbors_valid(grid, w, h, index, closed):
+		position = i_to_xy(w, h, index)
+		x = position[0]
+		y = position[1]
+		neighbors = list()
+		if x > 0 and grid[y][x - 1] != 1:
+			left =  xy_to_i(h, [x - 1, y])
+			if not left in closed.keys():
+				neighbors.append(left)
+		if x < w - 1 and grid[y][x + 1] != 1:
+			right =  xy_to_i(h, [x + 1, y])
+			if not right in closed.keys():
+				neighbors.append(right)
+		if y > 0 and grid[y - 1][x] != 1:
+			up =  xy_to_i(h, [x, y - 1])
+			if not up in closed.keys():
+				neighbors.append(up)
+		if y < h - 1 and grid[y + 1][x] != 1:
+			down =  xy_to_i(h, [x, y + 1])
+			if not down in closed.keys():
+				neighbors.append(down)
+		return neighbors
+
+	def get_h(heuristic, width, height, index):
+		loc = i_to_xy(width, height, index)
+		return heuristic[loc[1]][loc[0]]
+
+	def create_returnvalues(w, h, result, start, end):
+		i_path = list()
+		current = end
+		while current != start:
+			i_path.insert(0, current)
+			current = result[i_path[0]][2]
+		i_path.insert(0, current)
+		path = list()
+		for i in i_path:
+			new = i_to_xy(w, h, i)
+			path.append(new)
+		return True, path
+
+	w = len(grid[0])
+	h = len(grid)
+	heuristic = manhattan_heuristic(grid, end)
+	cost = 1
+	end_index = xy_to_i(h, end)
+	opened = defaultdict(int)
+	# Values are lists as [total_cost, g_cost, parent]
+	opened[xy_to_i(h, start)] = [heuristic[start[1]][start[0]], 0,-1]
+	closed = defaultdict(int)
+	cnt = 0
+	while len(opened):
+		current = sorted(opened, key=opened.get)[0]
+		current_data = opened.pop(current)
+		closed[current] = current_data
+		cnt += 1
+		if current == end_index:
+			print("Path found")
+			print(f"A* visited vertices: {cnt}")
+			return create_returnvalues(w, h, closed, xy_to_i(h, start), end_index)
+		for ngb in get_neighbors_valid(grid, w, h, current, closed):
+			ngb_gcost = current_data[1] + cost
+			ngb_cost = ngb_gcost + get_h(heuristic, w, h, ngb)
+			if ngb not in opened.keys():
+				opened[ngb] = [ngb_cost, ngb_gcost, current]
+			elif opened[ngb][0] > ngb_cost:
+				opened[ngb][0] = ngb_cost
+				opened[ngb][1] = ngb_gcost
+				opened[ngb][2] = current
+	print("Path not found")
+	print(f"A* visited vertices: {cnt}")
+	return False, None
+
+

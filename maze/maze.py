@@ -2,14 +2,15 @@ import arcade as ar
 import os
 from sources.grid import create_maze_depthfirst_multipath, find_end_xy, find_start_xy
 from sources.bfs import bfs_path
+from sources.astar import astar_path
 
 # Settings
 SPRITE_SIZE = 8
 SPRITE_SCALE = SPRITE_SIZE / 128
 
 
-MAZE_W = 99
-MAZE_H = 99
+MAZE_W = 81
+MAZE_H = 81
 WIN_W = int(MAZE_W * SPRITE_SIZE)
 WIN_H = int(MAZE_H * SPRITE_SIZE)
 
@@ -25,7 +26,7 @@ class MazeGame(ar.Window):
 		self.maze = None
 		self.wall_list = None
 		self.start_end = None
-		self.path = None
+		self.path = dict()
 		self.path_draw = True
 	
 	def setup(self):
@@ -52,7 +53,10 @@ class MazeGame(ar.Window):
 					self.start_end.append(end)
 		suc, path = bfs_path(self.maze, find_start_xy(self.maze, self.maze_w, self.maze_h), find_end_xy(self.maze, self.maze_w, self.maze_h))
 		if suc:
-			self.add_path(path)
+			self.add_path(path, 'bfs')
+		suc, apath = astar_path(self.maze, find_start_xy(self.maze, self.maze_w, self.maze_h), find_end_xy(self.maze, self.maze_w, self.maze_h))
+		if suc:
+			self.add_path(apath, 'astar')
 
 	def on_draw(self):
 		ar.start_render()
@@ -76,16 +80,17 @@ class MazeGame(ar.Window):
 		if button == ar.MOUSE_BUTTON_LEFT:
 			print(f"Current position [{pos_x}, {pos_y}]")
 
-	def add_path(self, path=[[1,1], [2,1], [2,2]]):
-		self.path = path
+	def add_path(self, path, name):
+		self.path[name] = path
 
 	def draw_path(self):
-		if self.path:
-			points = list()
-			for p in self.path:
-				n = (p[0] * SPRITE_SIZE + SPRITE_SIZE / 2, p[1] * SPRITE_SIZE + SPRITE_SIZE / 2)
-				points.append(n)
-			ar.draw_line_strip(points, ar.color.BLUE_BELL, 5)
+		if len(self.path):
+			for key in self.path:
+				points = list()
+				for p in self.path[key]:
+					n = (p[0] * SPRITE_SIZE + SPRITE_SIZE / 2, p[1] * SPRITE_SIZE + SPRITE_SIZE / 2)
+					points.append(n)
+				ar.draw_line_strip(points, ar.color.BLUE_BELL, 5)
 
 def main():
 	window = MazeGame(WIN_W, WIN_H, MAZE_W, MAZE_H)
