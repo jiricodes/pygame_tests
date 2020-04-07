@@ -14,7 +14,7 @@ MAZE_H = 81
 WIN_W = int(MAZE_W * SPRITE_SIZE)
 WIN_H = int(MAZE_H * SPRITE_SIZE)
 
-MAZE_PATHS = 3
+MAZE_PATHS = 10
 
 class MazeGame(ar.Window):
 	def __init__(self, win_w, win_h, maze_w, maze_h):
@@ -131,6 +131,7 @@ class MazeGame(ar.Window):
 				print("Trace On")
 		elif symbol == ar.key.R:
 			self.astar_trace_number = 0
+			self.astar_trace_shadow = list()
 
 	def on_key_press(self, symbol, modifier):
 		if symbol == ar.key.RIGHT:
@@ -194,7 +195,6 @@ class MazeGame(ar.Window):
 			if not done:
 				self.astar_trace_shadow.append(tmp[-2:])
 			self.astar_trace_number += 1
-		print(f"Trace on {self.astar_trace_number}")
 
 	def draw_trace(self):
 		if self.astar_trace:
