@@ -2,7 +2,7 @@ import arcade as ar
 import os
 from sources.grid import create_maze_depthfirst_multipath, find_end_xy, find_start_xy
 from sources.bfs import bfs_path
-from sources.astar import astar_path, manhattan_heuristic
+from sources.astar import astar_path, get_heuristic_grid
 
 # Settings
 SPRITE_SIZE = 16
@@ -14,7 +14,9 @@ MAZE_H = 81
 WIN_W = int(MAZE_W * SPRITE_SIZE)
 WIN_H = int(MAZE_H * SPRITE_SIZE)
 
-MAZE_PATHS = 10
+MAZE_PATHS = 100
+
+A_STAR_H = 'euclid'
 
 class MazeGame(ar.Window):
 	def __init__(self, win_w, win_h, maze_w, maze_h):
@@ -30,6 +32,12 @@ class MazeGame(ar.Window):
 		self.path_draw = dict()
 		self.path_index_bfs = 0
 		self.path_index_bfs_change = 0
+		self.bfs_trace = None
+		self.bfs_trace_len = 0
+		self.bfs_trace_animate = 0
+		self.bfs_trace_speed = 20
+		self.bfs_trace_shadow = list()
+		self.bfs_show_values = False
 		self.anim_speed = 1
 		self.playback_path = False
 		self.astar_trace = None
@@ -38,7 +46,8 @@ class MazeGame(ar.Window):
 		self.astar_trace_animate = 0
 		self.astar_trace_speed = 20
 		self.astar_trace_shadow = list()
-		self.manhattan_grid = None
+		self.astar_show_values = False
+		self.heuristic_grid = None
 		self.grid_view = False
 		self.pause = False
 	
@@ -64,14 +73,16 @@ class MazeGame(ar.Window):
 					end.center_x = column * SPRITE_SIZE + SPRITE_SIZE / 2
 					end.center_y = row * SPRITE_SIZE + SPRITE_SIZE / 2
 					self.start_end.append(end)
-		suc, path = bfs_path(self.maze, find_start_xy(self.maze, self.maze_w, self.maze_h), find_end_xy(self.maze, self.maze_w, self.maze_h))
+		suc, path, self.bfs_trace = bfs_path(self.maze, find_start_xy(self.maze, self.maze_w, self.maze_h), find_end_xy(self.maze, self.maze_w, self.maze_h))
 		if suc:
 			self.add_path(path, 'bfs')
 			self.path_draw['bfs'] = False
+			self.bfs_trace_len = len(self.bfs_trace)
 		else:
 			print("BFS error")
 			exit()
-		suc, apath, self.astar_trace = astar_path(self.maze, find_start_xy(self.maze, self.maze_w, self.maze_h), find_end_xy(self.maze, self.maze_w, self.maze_h))
+		print(f"BFS trace len: {self.bfs_trace_len}")
+		suc, apath, self.astar_trace = astar_path(self.maze, find_start_xy(self.maze, self.maze_w, self.maze_h), find_end_xy(self.maze, self.maze_w, self.maze_h), A_STAR_H)
 		if suc:
 			self.add_path(apath, 'astar')
 			self.path_draw['astar'] = False
@@ -80,8 +91,8 @@ class MazeGame(ar.Window):
 			print("A* error")
 			exit()
 		print(f"A* trace len: {self.astar_trace_len}")
-		self.manhattan_grid = manhattan_heuristic(self.maze, find_end_xy(self.maze, self.maze_w, self.maze_h))
-		print("Manhattan Loaded")
+		self.heuristic_grid = get_heuristic_grid(self.maze, find_end_xy(self.maze, self.maze_w, self.maze_h), A_STAR_H)
+		print(f"{A_STAR_H.capitalize()} Loaded")
 		print("Setup Done")
 
 	def on_draw(self):
@@ -158,6 +169,11 @@ class MazeGame(ar.Window):
 				self.grid_view = False
 			else:
 				self.grid_view = True
+		elif symbol == ar.key.V:
+			if self.astar_show_values:
+				self.astar_show_values = False
+			else:
+				self.astar_show_values = True
 
 	def on_key_press(self, symbol, modifier):
 		if symbol == ar.key.RIGHT:
@@ -228,7 +244,23 @@ class MazeGame(ar.Window):
 		if self.astar_trace:
 			for path in self.astar_trace_shadow:
 				self.draw_one_path(path, ar.color.PINK_LACE)
+				if self.astar_show_values:
+					self.astar_values(path)
 			self.draw_one_path(self.astar_trace[self.astar_trace_number - 1], ar.color.PINK_PEARL)
+			if self.astar_show_values:
+					self.astar_values(self.astar_trace[self.astar_trace_number - 1])
+	
+	def astar_values(self, path):
+		x = path[-1][0]
+		y = path[-1][1]
+		g = len(path) - 2
+		h = self.heuristic_grid[y][x]
+		t = g + h
+		if A_STAR_H == 'euclid':
+			self.draw_text(f"{t:.2f}", [x, y], SPRITE_SIZE // 2, ar.color.BLACK)
+		else:
+			self.draw_text(f"{t}", [x, y], SPRITE_SIZE // 2, ar.color.BLACK)
+
 	
 	def draw_text(self, text, position, font_size, color):
 		x = position[0] * SPRITE_SIZE + SPRITE_SIZE / 2
@@ -239,7 +271,10 @@ class MazeGame(ar.Window):
 		for i in range(self.maze_h):
 			for k in range(self.maze_w):
 				if self.maze[i][k] != 1:
-					self.draw_text(f"{self.manhattan_grid[i][k]}", [k, i], SPRITE_SIZE // 2, ar.color.BLACK)
+					if A_STAR_H == 'euclid':
+						self.draw_text(f"{self.heuristic_grid[i][k]:.1f}", [k, i], SPRITE_SIZE // 3, ar.color.BLACK)
+					else:
+						self.draw_text(f"{self.heuristic_grid[i][k]}", [k, i], SPRITE_SIZE // 2, ar.color.BLACK)
 
 def main():
 	window = MazeGame(WIN_W, WIN_H, MAZE_W, MAZE_H)

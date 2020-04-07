@@ -26,7 +26,33 @@ def manhattan_heuristic(grid, end):
 		i += 1
 	return manhattan
 
-def astar_path(grid, start, end):
+def euclidean_heuristic(grid, end):
+	euclid = deepcopy(grid)
+	w = len(euclid[0])
+	h = len(euclid)
+	x = end[0]
+	y = end[1]
+	euclid[y][x] = 0
+	i = 0
+	while i < h:
+		k = 0
+		while k < w:
+			euclid[i][k] = ((x - k) ** 2 + (y - i) ** 2) ** 0.5
+			k += 1
+		i += 1
+	return euclid
+
+def get_heuristic_grid(grid, end, name):
+	heuristics = {
+		'manhattan': manhattan_heuristic(grid, end),
+		'euclid' : euclidean_heuristic(grid, end)
+	}
+	if name in heuristics.keys():
+		return heuristics[name]
+	else:
+		return None
+
+def astar_path(grid, start, end, h_name):
 	def get_neighbors_valid(grid, w, h, index, closed):
 		position = i_to_xy(w, h, index)
 		x = position[0]
@@ -59,7 +85,7 @@ def astar_path(grid, start, end):
 		current = end
 		while current != start:
 			i_path.insert(0, current)
-			current = result[i_path[0]][2]
+			current = result[i_path[0]][3]
 		i_path.insert(0, current)
 		path = list()
 		for i in i_path:
@@ -69,18 +95,25 @@ def astar_path(grid, start, end):
 
 	w = len(grid[0])
 	h = len(grid)
-	heuristic = manhattan_heuristic(grid, end)
+	heuristic = get_heuristic_grid(grid, end, h_name)
+	if not heuristic:
+		return False, None, None
 	cost = 1
 	end_index = xy_to_i(h, end)
 	start_index = xy_to_i(h, start)
 	opened = defaultdict(int)
-	# Values are lists as [total_cost, g_cost, parent]
-	opened[start_index] = [heuristic[start[1]][start[0]], 0,-1]
+	# Values are lists as [total_cost, g_cost, h_cost, parent]
+	opened[start_index] = [heuristic[start[1]][start[0]], 0, heuristic[start[1]][start[0]], -1]
 	closed = defaultdict(int)
 	cnt = 0
 	trace = list()
 	while len(opened):
 		current = sorted(opened, key=opened.get)[0]
+		# for item in sorted(opened, key=opened.get):
+		# 	print(f"{item:5}:{opened[item][0]:8.3f} |{opened[item][1]:5} |{opened[item][2]:8.3f} |{opened[item][3]:5} |")
+		# print("-"*50)
+		# if current > w * 20:
+		# 	exit()
 		current_data = opened.pop(current)
 		closed[current] = current_data
 		if current != start_index:
@@ -92,15 +125,29 @@ def astar_path(grid, start, end):
 			return True, create_returnvalues(w, h, closed, start_index, end_index), trace
 		for ngb in get_neighbors_valid(grid, w, h, current, closed):
 			ngb_gcost = current_data[1] + cost
-			ngb_cost = ngb_gcost + get_h(heuristic, w, h, ngb)
+			ngb_hcost = get_h(heuristic, w, h, ngb)
+			ngb_cost = ngb_gcost + ngb_hcost
 			if ngb not in opened.keys():
-				opened[ngb] = [ngb_cost, ngb_gcost, current]
+				opened[ngb] = [ngb_cost, ngb_gcost, ngb_hcost, current]
 			elif opened[ngb][0] > ngb_cost:
 				opened[ngb][0] = ngb_cost
 				opened[ngb][1] = ngb_gcost
-				opened[ngb][2] = current
+				opened[ngb][2] = ngb_hcost
+				opened[ngb][3] = current
 	print("Path not found")
 	print(f"A* visited vertices: {cnt}")
 	return False, None, None
 
-
+if __name__ == "__main__":
+	w = 5
+	h = 5
+	g = list()
+	for i in range(h):
+		row = list()
+		for k in range(w):
+			row.append(0)
+		g.append(row)
+	print(g)
+	h = get_heuristic_grid(g, [3,3], 'euclid')
+	for row in h:
+		print(row)
