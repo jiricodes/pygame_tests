@@ -185,18 +185,21 @@ class MazeGame(ar.Window):
 	def increase_step_trace(self, dump):
 		if self.astar_trace_number < self.astar_trace_len:
 			tmp = self.astar_trace[self.astar_trace_number - 1]
-			for step in range(len(tmp)):
-				if not tmp[step] in self.astar_trace_shadow:
-					if self.astar_trace_shadow == []:
-						self.astar_trace_shadow.append(tmp[step])
-					elif step != 0:
-						self.astar_trace_shadow.insert(self.astar_trace_shadow.index(tmp[step - 1]), tmp[step])
+			done = False
+			for i in range(len(self.astar_trace_shadow)):
+				if tmp[-2] == self.astar_trace_shadow[i][-1]:
+					self.astar_trace_shadow[i].append(tmp[-1])
+					done = True
+					break
+			if not done:
+				self.astar_trace_shadow.append(tmp[-2:])
 			self.astar_trace_number += 1
 		print(f"Trace on {self.astar_trace_number}")
 
 	def draw_trace(self):
 		if self.astar_trace:
-			self.draw_one_path(self.astar_trace_shadow, ar.color.PINK_LACE)
+			for path in self.astar_trace_shadow:
+				self.draw_one_path(path, ar.color.PINK_LACE)
 			self.draw_one_path(self.astar_trace[self.astar_trace_number - 1], ar.color.PINK_PEARL)
 			
 
