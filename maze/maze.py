@@ -28,6 +28,10 @@ class MazeGame(ar.Window):
 		self.start_end = None
 		self.path = dict()
 		self.path_draw = True
+		self.path_index_bfs = 0
+		self.path_index_bfs_change = 0
+		self.anim_speed = 1
+		self.playback_path = False
 	
 	def setup(self):
 		ar.set_background_color(ar.color.BRITISH_RACING_GREEN)
@@ -64,15 +68,35 @@ class MazeGame(ar.Window):
 		self.start_end.draw()
 		if self.path_draw:
 			self.draw_path()
-	
+		if self.path_index_bfs:
+			self.draw_steps_path('bfs')
+
 	def on_update(self, delta_time):
-		pass
+		if 'bfs' in self.path.keys():
+			if self.path_index_bfs_change < 0 and self.path_index_bfs >= self.path_index_bfs_change * -1:
+				self.path_index_bfs += self.path_index_bfs_change
+			elif self.path_index_bfs_change > 0 and self.path_index_bfs < len(self.path['bfs']) - self.path_index_bfs_change:
+				self.path_index_bfs += self.path_index_bfs_change
 	
 	def on_key_release(self, symbol, modifier):
 		if symbol == ar.key.KEY_1:
 			self.path_draw = False
 		elif symbol == ar.key.KEY_2:
 			self.path_draw = True
+		elif symbol == ar.key.RIGHT or symbol == ar.key.LEFT:
+				self.path_index_bfs_change = 0
+		elif symbol == ar.key.SPACE:
+			if self.path_index_bfs_change:
+				self.path_index_bfs_change = 0
+			else:
+				self.path_index_bfs_change = self.anim_speed
+
+	def on_key_press(self, symbol, modifier):
+		if symbol == ar.key.RIGHT:
+			self.path_index_bfs_change = self.anim_speed
+		elif symbol == ar.key.LEFT:
+			self.path_index_bfs_change = -1 * self.anim_speed
+
 	
 	def on_mouse_release(self, x, y, button, modifier):
 		pos_x = int(x / SPRITE_SIZE)
@@ -85,12 +109,23 @@ class MazeGame(ar.Window):
 
 	def draw_path(self):
 		if len(self.path):
+			colors = [ar.color.BLUE, ar.color.YELLOW, ar.color.RED]
+			ci = 0
 			for key in self.path:
 				points = list()
 				for p in self.path[key]:
 					n = (p[0] * SPRITE_SIZE + SPRITE_SIZE / 2, p[1] * SPRITE_SIZE + SPRITE_SIZE / 2)
 					points.append(n)
-				ar.draw_line_strip(points, ar.color.BLUE_BELL, 5)
+				ar.draw_line_strip(points, colors[ci], 5)
+				ci = (ci + 1) % len(colors)
+
+	def draw_steps_path(self, key):
+		points = list()
+		for step in self.path[key][:self.path_index_bfs + 1]:
+			n = (step[0] * SPRITE_SIZE + SPRITE_SIZE / 2, step[1] * SPRITE_SIZE + SPRITE_SIZE / 2)
+			points.append(n)
+		ar.draw_line_strip(points, ar.color.ORANGE_PEEL, 3)
+
 
 def main():
 	window = MazeGame(WIN_W, WIN_H, MAZE_W, MAZE_H)
