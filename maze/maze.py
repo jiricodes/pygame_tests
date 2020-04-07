@@ -36,7 +36,7 @@ class MazeGame(ar.Window):
 		self.astar_trace_number = 0
 		self.astar_trace_len = 0
 		self.astar_trace_animate = 0
-		self.astar_trace_speed = 5
+		self.astar_trace_speed = 20
 		self.astar_trace_shadow = list()
 		self.manhattan_grid = None
 		self.grid_view = False
@@ -94,6 +94,8 @@ class MazeGame(ar.Window):
 				self.draw_steps_path('bfs')
 			if 0 < self.astar_trace_number < self.astar_trace_len:
 				self.draw_trace()
+		elif self.grid_view:
+			self.draw_heuristic()
 		else:
 			pos = [self.maze_w // 2, self.maze_h // 4 * 3]
 			size = min(self.maze_h // 4, self.maze_w // 4) * SPRITE_SIZE
@@ -143,6 +145,7 @@ class MazeGame(ar.Window):
 				ar.schedule(self.increase_step_trace, 1/self.astar_trace_speed)
 				print("Trace On")
 		elif symbol == ar.key.R:
+			self.path_index_bfs = 0
 			self.astar_trace_number = 0
 			self.astar_trace_shadow = list()
 		elif symbol == ar.key.P:
@@ -150,6 +153,11 @@ class MazeGame(ar.Window):
 				self.pause = False
 			else:
 				self.pause = True
+		elif symbol == ar.key.G:
+			if self.grid_view:
+				self.grid_view = False
+			else:
+				self.grid_view = True
 
 	def on_key_press(self, symbol, modifier):
 		if symbol == ar.key.RIGHT:
@@ -227,7 +235,11 @@ class MazeGame(ar.Window):
 		y = position[1] * SPRITE_SIZE + SPRITE_SIZE / 2
 		ar.draw_text(text, x, y, color, font_size, align="center", anchor_x="center", anchor_y="center")
 			
-
+	def draw_heuristic(self):
+		for i in range(self.maze_h):
+			for k in range(self.maze_w):
+				if self.maze[i][k] != 1:
+					self.draw_text(f"{self.manhattan_grid[i][k]}", [k, i], SPRITE_SIZE // 2, ar.color.BLACK)
 
 def main():
 	window = MazeGame(WIN_W, WIN_H, MAZE_W, MAZE_H)
