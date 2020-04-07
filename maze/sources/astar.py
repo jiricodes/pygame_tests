@@ -65,27 +65,31 @@ def astar_path(grid, start, end):
 		for i in i_path:
 			new = i_to_xy(w, h, i)
 			path.append(new)
-		return True, path
+		return path
 
 	w = len(grid[0])
 	h = len(grid)
 	heuristic = manhattan_heuristic(grid, end)
 	cost = 1
 	end_index = xy_to_i(h, end)
+	start_index = xy_to_i(h, start)
 	opened = defaultdict(int)
 	# Values are lists as [total_cost, g_cost, parent]
-	opened[xy_to_i(h, start)] = [heuristic[start[1]][start[0]], 0,-1]
+	opened[start_index] = [heuristic[start[1]][start[0]], 0,-1]
 	closed = defaultdict(int)
 	cnt = 0
+	trace = list()
 	while len(opened):
 		current = sorted(opened, key=opened.get)[0]
 		current_data = opened.pop(current)
 		closed[current] = current_data
+		if current != start_index:
+			trace.append(create_returnvalues(w,h,closed, start_index, current))
 		cnt += 1
 		if current == end_index:
 			print("Path found")
 			print(f"A* visited vertices: {cnt}")
-			return create_returnvalues(w, h, closed, xy_to_i(h, start), end_index)
+			return True, create_returnvalues(w, h, closed, start_index, end_index), trace
 		for ngb in get_neighbors_valid(grid, w, h, current, closed):
 			ngb_gcost = current_data[1] + cost
 			ngb_cost = ngb_gcost + get_h(heuristic, w, h, ngb)
@@ -97,6 +101,6 @@ def astar_path(grid, start, end):
 				opened[ngb][2] = current
 	print("Path not found")
 	print(f"A* visited vertices: {cnt}")
-	return False, None
+	return False, None, None
 
 
