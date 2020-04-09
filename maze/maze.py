@@ -51,6 +51,14 @@ class MazeGame(ar.Window):
 		self.grid_view = False
 		self.pause = False
 	
+	def __str__(self):
+		s = f"Maze {self.maze_w}x{self.maze_h}\n"
+		for row in self.maze:
+			for item in row:
+				s += f" {item} |"
+			s+= "\n"
+		return s
+	
 	def setup(self):
 		ar.set_background_color(ar.color.BRITISH_RACING_GREEN)
 		self.maze = create_maze_depthfirst_multipath(self.maze_w, self.maze_h, MAZE_PATHS)
@@ -94,6 +102,7 @@ class MazeGame(ar.Window):
 		self.heuristic_grid = get_heuristic_grid(self.maze, find_end_xy(self.maze, self.maze_w, self.maze_h), A_STAR_H)
 		print(f"{A_STAR_H.capitalize()} Loaded")
 		print("Setup Done")
+		print(self.__str__())
 
 	def on_draw(self):
 		ar.start_render()

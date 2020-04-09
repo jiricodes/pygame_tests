@@ -96,6 +96,7 @@ def astar_path(grid, start, end, h_name):
 	w = len(grid[0])
 	h = len(grid)
 	heuristic = get_heuristic_grid(grid, end, h_name)
+	print(heuristic)
 	if not heuristic:
 		return False, None, None
 	cost = 1

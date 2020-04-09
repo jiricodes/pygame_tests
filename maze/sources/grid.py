@@ -16,6 +16,15 @@ def create_grid_checkered(width, height):
 		grid.append(row)
 	return grid
 
+def create_grid_blank(width, height):
+	grid = list()
+	for r in range(height):
+		row = list()
+		for c in range(width):
+			row.append(0)
+		grid.append(row)
+	return grid
+
 def create_maze_depthfirst(width, height):
 	maze = create_grid_checkered(width, height)
 	
