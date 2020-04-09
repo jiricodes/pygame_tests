@@ -102,7 +102,6 @@ class MazeGame(ar.Window):
 		self.heuristic_grid = get_heuristic_grid(self.maze, find_end_xy(self.maze, self.maze_w, self.maze_h), A_STAR_H)
 		print(f"{A_STAR_H.capitalize()} Loaded")
 		print("Setup Done")
-		print(self.__str__())
 
 	def on_draw(self):
 		ar.start_render()

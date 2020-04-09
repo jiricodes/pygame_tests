@@ -96,7 +96,6 @@ def astar_path(grid, start, end, h_name):
 	w = len(grid[0])
 	h = len(grid)
 	heuristic = get_heuristic_grid(grid, end, h_name)
-	print(heuristic)
 	if not heuristic:
 		return False, None, None
 	cost = 1
@@ -109,7 +108,13 @@ def astar_path(grid, start, end, h_name):
 	cnt = 0
 	trace = list()
 	while len(opened):
-		current = sorted(opened, key=opened.get)[0]
+		sorted_keys = sorted(opened, key=opened.get)
+		current = sorted_keys[0]
+		for item in sorted_keys:
+			if opened[current][0] == opened[item][0]:
+				current = item
+			else:
+				break
 		# for item in sorted(opened, key=opened.get):
 		# 	print(f"{item:5}:{opened[item][0]:8.3f} |{opened[item][1]:5} |{opened[item][2]:8.3f} |{opened[item][3]:5} |")
 		# print("-"*50)
