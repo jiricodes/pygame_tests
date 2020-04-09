@@ -1,13 +1,13 @@
 from copy import deepcopy
 from collections import defaultdict
 
-def i_to_xy(grid_width, grid_height, index):
+def i_to_xy(grid_width, index):
 	x = index % grid_width
-	y = index // grid_height
+	y = index // grid_width
 	return [x, y]
 
-def xy_to_i(grid_height, coords):
-	i = grid_height * coords[1] + coords[0]
+def xy_to_i(grid_width, coords):
+	i = grid_width * coords[1] + coords[0]
 	return i
 
 def manhattan_heuristic(grid, end):
@@ -54,30 +54,30 @@ def get_heuristic_grid(grid, end, name):
 
 def astar_path(grid, start, end, h_name):
 	def get_neighbors_valid(grid, w, h, index, closed):
-		position = i_to_xy(w, h, index)
+		position = i_to_xy(w, index)
 		x = position[0]
 		y = position[1]
 		neighbors = list()
 		if x > 0 and grid[y][x - 1] != 1:
-			left =  xy_to_i(h, [x - 1, y])
+			left =  xy_to_i(w, [x - 1, y])
 			if not left in closed.keys():
 				neighbors.append(left)
 		if x < w - 1 and grid[y][x + 1] != 1:
-			right =  xy_to_i(h, [x + 1, y])
+			right =  xy_to_i(w, [x + 1, y])
 			if not right in closed.keys():
 				neighbors.append(right)
 		if y > 0 and grid[y - 1][x] != 1:
-			up =  xy_to_i(h, [x, y - 1])
+			up =  xy_to_i(w, [x, y - 1])
 			if not up in closed.keys():
 				neighbors.append(up)
 		if y < h - 1 and grid[y + 1][x] != 1:
-			down =  xy_to_i(h, [x, y + 1])
+			down =  xy_to_i(w, [x, y + 1])
 			if not down in closed.keys():
 				neighbors.append(down)
 		return neighbors
 
 	def get_h(heuristic, width, height, index):
-		loc = i_to_xy(width, height, index)
+		loc = i_to_xy(width, index)
 		return heuristic[loc[1]][loc[0]]
 
 	def create_returnvalues(w, h, result, start, end):
@@ -89,7 +89,7 @@ def astar_path(grid, start, end, h_name):
 		i_path.insert(0, current)
 		path = list()
 		for i in i_path:
-			new = i_to_xy(w, h, i)
+			new = i_to_xy(w, i)
 			path.append(new)
 		return path
 
@@ -99,8 +99,8 @@ def astar_path(grid, start, end, h_name):
 	if not heuristic:
 		return False, None, None
 	cost = 1
-	end_index = xy_to_i(h, end)
-	start_index = xy_to_i(h, start)
+	end_index = xy_to_i(w, end)
+	start_index = xy_to_i(w, start)
 	opened = defaultdict(int)
 	# Values are lists as [total_cost, g_cost, h_cost, parent]
 	opened[start_index] = [heuristic[start[1]][start[0]], 0, heuristic[start[1]][start[0]], -1]

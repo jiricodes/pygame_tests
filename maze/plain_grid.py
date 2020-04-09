@@ -3,8 +3,8 @@ import os
 from sources.grid import create_grid_blank
 from sources.astar import astar_path
 
-GRID_W = 25
-GRID_H = 25
+GRID_W = 20
+GRID_H = 10
 
 TILE_SIZE = 32
 TILE_COLOR_EMPTY = ar.color.AMAZON
@@ -98,8 +98,10 @@ class PlainGrid(ar.Window):
 	def on_mouse_press(self, x, y, button, modifiers):
 		i = y // self.tile_size
 		k = x // self.tile_size
+		print(f"Click {x}x{y} => {k}x{i}")
 		if i < self.h and k < self.w:
-			index = i * self.h + k
+			index = i * self.w + k
+			print(f"Sprite {index} at {self.grid_list[index].center_x}x{self.grid_list[index].center_y}")
 			if button == ar.MOUSE_BUTTON_LEFT and self.grid[i][k] == 0 and not self.lifted:
 				self.grid[i][k] = 1
 				self.grid_list[index].alpha = 255
@@ -122,7 +124,7 @@ class PlainGrid(ar.Window):
 		i = y // self.tile_size
 		k = x // self.tile_size
 		if 0 <= i < self.h and 0 <= k < self.w:
-			index = i * self.h + k
+			index = i * self.w + k
 			if button == ar.MOUSE_BUTTON_LEFT and self.grid[i][k] == 0 and not self.lifted:
 				self.grid[i][k] = 1
 				self.grid_list[index].alpha = 255
@@ -183,10 +185,10 @@ class PlainGrid(ar.Window):
 		self.astar_draw = False
 		suc, self.astar_path, self.astar_trace = astar_path(self.grid, self.start, self.end, self.astar_heuristic)
 		self.astar_draw = False
-		self.astar_trace_len = len(self.astar_trace)
 		if not suc:
 			print("A* error")
 			exit()
+		self.astar_trace_len = len(self.astar_trace)
 		print(self.astar_path)
 	
 	def draw_trace(self):
