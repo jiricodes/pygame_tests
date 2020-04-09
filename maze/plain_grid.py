@@ -103,13 +103,12 @@ class PlainGrid(ar.Window):
 			elif button == ar.MOUSE_BUTTON_RIGHT and self.grid[i][k] == 1 and not self.lifted:
 				self.grid[i][k] = 0
 				self.grid_list[index].alpha = 0
-			elif button == ar.MOUSE_BUTTON_LEFT and self.grid[i][k] == 2 and not self.lifted:
-				self.lifted = self.startSprite
-				self.set_mouse_visible(False)
-				self.grid[i][k] = 0
+			elif button == ar.MOUSE_BUTTON_LEFT and (self.grid[i][k] == 2 or self.grid[i][k] == 3) and not self.lifted:
+				self.pickup_sprite(i, k)
 				self.grid_list[index].alpha = 0
 			elif button == ar.MOUSE_BUTTON_LEFT and (self.grid[i][k] == 0 or self.grid[i][k] == 1) and self.lifted:
 				self.drop_lifted(i, k)
+				self.grid_list[index].alpha = 0
 	
 	def on_mouse_motion(self, x, y, dx, dy):
 		if self.lifted:
@@ -128,6 +127,15 @@ class PlainGrid(ar.Window):
 				self.grid[i][k] = 0
 				self.grid_list[index].alpha = 0
 	
+	def pickup_sprite(self, i, k):
+		if not self.lifted:
+			if self.grid[i][k] == 2:
+				self.lifted = self.startSprite
+			elif self.grid[i][k] == 3:
+				self.lifted = self.endSprite
+			self.set_mouse_visible(False)
+			self.grid[i][k] = 0
+
 	def drop_lifted(self, i, k):
 		if self.lifted:
 			self.lifted.center_x = self.tile_size // 2 + self.tile_size * k
@@ -135,6 +143,9 @@ class PlainGrid(ar.Window):
 			if self.lifted.center_x == self.startSprite.center_x and self.lifted.center_y == self.startSprite.center_y:
 				self.grid[i][k] = 2
 				self.start = [k, i]
+			elif self.lifted.center_x == self.endSprite.center_x and self.lifted.center_y == self.endSprite.center_y:
+				self.grid[i][k] = 3
+				self.end = [k, i]
 			self.lifted = None
 			self.set_mouse_visible(True)
 	
