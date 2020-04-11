@@ -3,10 +3,10 @@ import os
 from sources.grid import create_grid_blank
 from sources.astar import astar_path
 
-GRID_W = 20
-GRID_H = 10
+GRID_W = 100
+GRID_H = 60
 
-TILE_SIZE = 32
+TILE_SIZE = 16
 TILE_COLOR_EMPTY = ar.color.AMAZON
 TILE_COLOR_FULL = ar.color.ORANGE_PEEL
 TILE_TRACE = ar.color.PINK_LACE
@@ -31,7 +31,7 @@ class PlainGrid(ar.Window):
 		self.astar_trace_number = 0
 		self.astar_trace_len = 0
 		self.astar_trace_animate = 0
-		self.astar_trace_speed = 60
+		self.astar_trace_speed = 24
 		self.astar_trace_shadow = list()
 		self.astar_draw = False
 		self.astar_heuristic = A_STAR_H
